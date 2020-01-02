@@ -5,8 +5,8 @@
 #SBATCH --time=72:00:00
 #SBATCH --nodes 1
 #SBATCH --ntasks 10
-#SBATCH -o job%a.out # stdout
-#SBATCH -e job%a.err # stderr
+#SBATCH -o job.out # stdout
+#SBATCH -e job.err # stderr
 
 ulimit -u 10000 #optional, setting user limits. The resources from jobs can
 #add up quickly. Likely not a problem at chpc though. 
@@ -19,7 +19,7 @@ parallel="parallel --delay .2 -j $SLURM_NTASKS"
 #Create a function that does whatever it is you want to do
 foo () {
     i=$1; #Unnecessary, but I prefer to use i
-    doscience "$i"; #Do something with or without i. 
+    echo "$i"; #Do something with or without i. 
     push Job $i has finished. #This is going to be unruly if you are running
     #a lot of things. 
 }

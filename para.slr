@@ -22,7 +22,7 @@ foo () {
     echo "$i"; #Do something with or without i. 
     push Job $i has finished. #This is going to be unruly if you are running
     #a lot of things. 
-}
+} | cat | gzip > foo.bar.txt.gz
 
 #Export your function for use. 
 export -f foo  

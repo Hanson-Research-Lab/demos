@@ -13,4 +13,7 @@
 #precidence over those provided in a slurm script file.  
 
 
-1>&2 echo "foo"
+echo "foo" #stdout will write to foo.out
+1>&2 echo "bar" #write to standard err. This will write to foo.err
+
+echo "Print to an independent file" > foobar.txt #write to another file

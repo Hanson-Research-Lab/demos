@@ -1,0 +1,16 @@
+#!/bin/bash
+#SBATCH -J foo
+#SBATCH --account=camp-kp
+#SBATCH --partition=camp-kp
+#SBATCH --time=10:00:00
+#SBATCH --nodes 1 
+#SBATCH --ntasks 1
+#SBATCH -o foo.out # stdout
+#SBATCH -e foo.err # stderr
+
+#SBATCH arguments must be at the beginning. All of these arguments can be 
+#provided on the command line. Arguments given on the command line take 
+#precidence over those provided in a slurm script file.  
+
+
+1>&2 echo "foo"

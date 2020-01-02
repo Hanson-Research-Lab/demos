@@ -12,8 +12,64 @@
 #provided on the command line. Arguments given on the command line take 
 #precidence over those provided in a slurm script file.  
 
+#You can put usual shell scripts/pipelines here, or call them from 
+#another file.  
 
+#slurm has a few way to handle output, but scripts writtern in R, python, 
+#etc that output to files within the script will still work. 
 echo "foo" #stdout will write to foo.out
-1>&2 echo "bar" #write to standard err. This will write to foo.err
-
+#1>&2 echo "bar" #write to standard err. This will write to foo.err
+1>&2 echo "bar" 
 echo "Print to an independent file" > foobar.txt #write to another file
+
+#Your local sotrage on CHPC is not the same place where computations 
+#actually take place. When you run a job, especially one that reads
+#and writes a lot of data, will be sending information back and forth 
+#between the storagae hosting machine and the node in use. This is done
+#over a network so it is SLOW. You likley wont notice for small jobs. 
+#But with using big data this can slow the process down. To circumvent 
+#this problem you can use what is called a scratch directory. This is a
+#temporary directory on the same node as reserved by the job.
+
+#Let's say you are using one input file, we will call input.file
+#and you output one file, ouput.file, and the script is a shell
+#script called pipeline.sh
+
+#name and create the scratch directory. In this case I have named
+#it after the job id of the slurm script. this is automatically
+#designated by slurm. If you have many jobs you can copy once and read
+#from the same scratch directory. In this case replace $SLURM_JOB_ID with 
+#a name that is not variable. 
+SCRDIR=/scratch/general/lustre/$USER/$SLURM_JOB_ID
+mkdir -p $SCRDIR #the -p flag means you only make the directory if it 
+#does not already exist. 
+
+#Copy to scratch. The -n flag will only copy the file over if the input
+#file isn't already in scratch. This way you can copy it once and any jobs
+#that will use the same scratch directory can skip the copy step. You
+#will have to delete the scratch directory or the input file from scratch
+#if you want to recopy it for some reason. For example, if the data is 
+#updated but the file name stays the same. 
+md5sum -c input.file > input.file.md5 #create a sum
+#alternatively you could use a sum provided with the data
+cp -n /some/project/dir/input.file $SCRDIR
+cp -n /some/project/dir/input.file.md5 $SCRDIR 
+cd $SCRDIR
+
+#whenever we copy something big we want to test its integrity after the move
+sums=`md5sum -c input.file.md5`; 
+if [ `echo $sums | cut -f2 -d' '` != "OK" ];
+    then exit "md5sum has failed $sums";
+fi;
+
+#Run the script. You can also copy it over to the scrath if you'd like.
+#This generates output.file
+bash /some/project/dir/pipeline.sh
+
+#Copy results back. 
+cp output.file /some/project/dir/
+
+#Scratch directories are removed after some time. However you
+#can manually remove them at the end of your job.
+rm -rf $SCRDIR 
+

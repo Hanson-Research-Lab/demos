@@ -1,0 +1,60 @@
+# Open an interactive session on a node
+srun -t 4:00:00 -A camp-kp -p camp-kp
+
+# Check on running batch jobs, or replace whomai with your Unid
+squeue -u `whoami`
+
+# See what command the job is running
+squeue -u `whoami` -o %o
+
+# Cancel a job
+scancel <jobid>
+# Cancel all of your jobs using your Unid
+scancel -u <username>
+
+# If you plan to cancel and restart a job you can do that in one command
+scontrol requeue <jobid>
+
+# Run a single batch job, described in file single.slr
+sbatch single.slr
+
+# Run a list of jobs, using a single script, multi.slr. When multi.slr
+# is launched, slurm will tell it the index of the current job.
+sbatch --array=0-49 multi.slr
+
+# Run several jobs with given indices
+sbatch --array=0,3,21,40-49 multi.slr
+
+# single.slr might look like this:
+
+    #!/bin/bash
+    #SBATCH -J yriceu/mig2
+    #SBATCH --account=camp-kp
+    #SBATCH --partition=camp-kp
+    #SBATCH --time=04:00:00
+    #SBATCH --nodes 1
+    #SBATCH --ntasks 1
+    #SBATCH -o mig2lnl.legofit # stdout
+    #SBATCH -e mig2lnl.err # stderr
+
+    # Execute this with "sbatch mig2.slr".
+
+    time legofit -t 42 -s 4 -S 1000@10000 -S 2000@2000000 mig2.lgo obs.txt
+
+# multi.slr might look like this
+
+    #!/bin/bash
+    #SBATCH -J yriceu/mig2boot
+    #SBATCH --account=camp
+    #SBATCH --partition=kingspeak
+    #SBATCH --time=04:00:00
+    #SBATCH --nodes 1
+    #SBATCH --ntasks 1
+    #SBATCH -o mig2boot%a.legofit # stdout
+    #SBATCH -e mig2boot%a.err # stderr
+
+    # Execute this with "sbatch --array=0-49 mig2boot.slr".  This will
+    # launch a job for each bootstrap replicate.
+
+    i=${SLURM_ARRAY_TASK_ID}
+    ifile=`printf "tabpat.boot%03d" $i`    # input file
